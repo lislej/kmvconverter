@@ -21,6 +21,8 @@
 #include <fstream>
 #include <cstring>
 #include <cstdio>
+#include <cmath>
+#include <cstddef>
 
 using namespace std;
 
@@ -37,7 +39,7 @@ public:
     double convertmVtoK(double mVolts);
     double convertKtomV(double Kelvin);
 
-    enum ConvUnit {Kelvin=0, mVolt=1};
+    enum ConvUnit {KELVIN=0, MVOLT=1} ;
 
 private:
 
@@ -47,6 +49,7 @@ private:
     double mVToKInterpolation(int low, int high, double target);
     void loadKmVXRefTable(char* fileName);
     bool validateInput(double value, ConvUnit convUnit);
+    inline bool isEqual(double x, double y);
 
 
     double **dataStore;

@@ -22,7 +22,7 @@ KmVConverter::KmVConverter(char* fileName)
 {
 
     //store filename and record count
-    int len = strlen(fileName) + 1;
+    size_t len = strlen(fileName) + 1;
     dataFileName = new char[ len ];
     memset(dataFileName,'\0',len);
     strcpy(dataFileName,fileName);
@@ -41,12 +41,12 @@ KmVConverter::~KmVConverter()
     }
 
     delete [] dataStore;
-    dataStore=NULL;
+
 
 
     //char* string
     delete dataFileName;
-    dataFileName=NULL;
+
 
 }
 
@@ -60,17 +60,17 @@ double KmVConverter::convertmVtoK(double mVolts) {
     //convert to volts
     mVolts /= 1000;
 
-    if ( validateInput(mVolts, ConvUnit::mVolt) == true ) {
+    if ( validateInput(mVolts, MVOLT) == true ) {
 
-       mVResult = KmVLookupDesc(high, low, ConvUnit::mVolt, mVolts );
+       mVResult = KmVLookupDesc(high, low, MVOLT, mVolts );
 
-        if (mVResult == -1) {
+        if (mVResult < 0) {
 
             mVResult = mVToKInterpolation(high, low, mVolts);
 
         } else {
 
-            int row = (int) mVResult;
+            int row = static_cast<int>(mVResult);
             mVResult = dataStore[row][0];
 
         }
@@ -86,16 +86,16 @@ double KmVConverter::convertKtomV(double Kelvin){
     int low  = 0;
     double mVResult = -1.0;
 
-    if ( validateInput(Kelvin, ConvUnit::Kelvin) == true) {
+    if ( validateInput(Kelvin, KELVIN) == true) {
 
-        mVResult = KmVLookup(high, low, ConvUnit::Kelvin, Kelvin );
+        mVResult = KmVLookup(high, low, KELVIN , Kelvin );
 
-        if (mVResult == -1) {
+        if (static_cast<int>(mVResult) == -1) {
 
             mVResult = KTomVInterpolation(high, low, Kelvin);
         } else {
 
-            int row = (int) mVResult;
+            int row = static_cast<int>(mVResult);
             mVResult = dataStore[row][1];
 
         }
@@ -124,7 +124,7 @@ int KmVConverter::KmVLookup(int &high, int &low, ConvUnit convUnit, double value
         }
     }
 
-  return (low < high && dataStore[low][convUnit] == value) ? low : -1;
+  return (low < high && isEqual(dataStore[low][convUnit], value)) ? low : -1;
 }
 
 int KmVConverter::KmVLookupDesc(int &high, int &low, ConvUnit convUnit, double value) {
@@ -146,20 +146,20 @@ int KmVConverter::KmVLookupDesc(int &high, int &low, ConvUnit convUnit, double v
         }
     }
 
-  return (low < high && dataStore[low][convUnit] == value) ? low : -1;
+  return (low < high && isEqual(dataStore[low][convUnit], value)) ? low : -1;
 }
 
 
 double KmVConverter::KTomVInterpolation(int high, int low, double target) {
 
-    double mVResult = dataStore[low][ConvUnit::mVolt] + (dataStore[high][ConvUnit::mVolt] - dataStore[low][ConvUnit::mVolt]) * ((target - dataStore[low][ConvUnit::Kelvin])/(dataStore[high][ConvUnit::Kelvin] - dataStore[low][ConvUnit::Kelvin]));
+    double mVResult = dataStore[low][MVOLT] + (dataStore[high][MVOLT] - dataStore[low][MVOLT]) * ((target - dataStore[low][KELVIN])/(dataStore[high][KELVIN] - dataStore[low][KELVIN]));
 
     return mVResult;
 }
 
 double KmVConverter::mVToKInterpolation(int low, int high, double target) {
 
-    double KResult = dataStore[low][ConvUnit::Kelvin] + (dataStore[high][ConvUnit::Kelvin] - dataStore[low][ConvUnit::Kelvin]) * ((target - dataStore[low][ConvUnit::mVolt])/(dataStore[high][ConvUnit::mVolt] - dataStore[low][ConvUnit::mVolt]));
+    double KResult = dataStore[low][KELVIN] + (dataStore[high][KELVIN] - dataStore[low][KELVIN]) * ((target - dataStore[low][MVOLT])/(dataStore[high][MVOLT] - dataStore[low][MVOLT]));
 
     return KResult;
 }
@@ -210,8 +210,8 @@ void KmVConverter::loadKmVXRefTable(char* fileName) {
 
                 //cout << KValue << " " << mVValue << " " << dVdTValue << endl;
 
-                dataStore[recCntr][ConvUnit::Kelvin] = KValue;
-                dataStore[recCntr][ConvUnit::mVolt] = mVValue;
+                dataStore[recCntr][KELVIN] = KValue;
+                dataStore[recCntr][MVOLT] = mVValue;
 
                 recCntr++;
             }
@@ -227,7 +227,7 @@ bool KmVConverter::validateInput(double value, ConvUnit convUnit) {
 
     bool dataStatus=false;
 
-    if (ConvUnit::Kelvin == convUnit) {
+    if (KELVIN == convUnit) {
 
         //ascending order
         if ( value >= dataStore[0][convUnit] && value <= dataStore[recordCnt-1][convUnit] ) {
@@ -248,3 +248,10 @@ bool KmVConverter::validateInput(double value, ConvUnit convUnit) {
     return dataStatus;
 }
 
+inline bool KmVConverter::isEqual(double x, double y)
+{
+  const double epsilon = 0.0000001;
+  return std::abs(x - y) <= epsilon * std::abs(x);
+  // http://www.cs.technion.ac.il/users/yechiel/c++-faq/floating-point-arith.html
+  // see Knuth section 4.2.2 pages 217-218
+}

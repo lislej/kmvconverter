@@ -5,17 +5,17 @@
  * program auth:James Lisle
 */
 
-#include <kmvconverter.h>
+#include "kmvconverter.h"
 
 using namespace std;
 
 
-const char* CMD_LNE_USAGE = "Usage: %s -f <filename>";
-const char* FILE_OPEN_ERROR_MSG = "%s file failed to open.";
+const char CMD_LNE_USAGE[] = "Usage: %s -f <filename>";
+const char FILE_OPEN_ERROR_MSG[] = "%s file failed to open.";
 
 //test data
-double kelvin[] = {1.23,1.34,1.40,2.1,3.5,4.0125,40.125,401.25,505.13};
-double mVolts[] = {85.023, 628.302,892.35,1725.0,1600.2,1050.13};
+const double kelvin[] = {1.23,1.34,1.40,2.1,3.5,4.0125,40.125,401.25,505.13};
+const double mVolts[] = {85.023, 628.302,892.35,1725.0,1600.2,1050.13};
 
 int main(int argc, char* argv[])
 {
@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
             double result=0.0;
             for (int i=0;i<maxTestCnt;i++) {
                result = kmVConv.convertKtomV(kelvin[i]);
-               if ( result != -1 ) {
+               if ( static_cast<int>(result) != -1 ) {
                   cout << kelvin[i] << " degrees Kelvin correlates to " << result << " mVolts " << endl;
                } else {
                   cout << kelvin[i] << " degree Kelvin to milliVolts is undefined for the dataset given." << endl;
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
             result=0.0;
             for (int i=0;i<maxTestCnt;i++) {
                result = kmVConv.convertmVtoK(mVolts[i]);
-               if ( result != -1 ) {
+               if ( static_cast<int>(result) != -1 ) {
                   cout << mVolts[i] << " milliVolts correlates to " << result << " degrees Kelvin " << endl;
                } else {
                   cout << mVolts[i] << " milliVolts to degree Kelvin is undefined for the dataset given." << endl;
