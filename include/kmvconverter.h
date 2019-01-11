@@ -39,15 +39,15 @@ public:
     double convertmVtoK(double mVolts);
     double convertKtomV(double Kelvin);
 
-    enum ConvUnit {KELVIN=0, MVOLT=1} ;
+    enum ConvUnit {KELVIN=0, VOLT=1} ;
 
 private:
 
-    int KmVLookup(int &high, int &low, ConvUnit convUnit, double v);
-    int KmVLookupDesc(int &low, int &high, ConvUnit convUnit, double value);
-    double KTomVInterpolation(int low, int high, double target);
-    double mVToKInterpolation(int low, int high, double target);
-    void loadKmVXRefTable(char* fileName);
+    int KVLookup(int &high, int &low, ConvUnit convUnit, double v);
+    int KVLookupDesc(int &high, int &low, ConvUnit convUnit, double value);
+    double KToVInterpolation(int low, int high, double target);
+    double VToKInterpolation(int low, int high, double target);
+    void loadKVXRefTable(char* fileName);
     bool validateInput(double value, ConvUnit convUnit);
     inline bool isEqual(double x, double y);
 

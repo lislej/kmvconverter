@@ -28,7 +28,7 @@ KmVConverter::KmVConverter(char* fileName)
     strcpy(dataFileName,fileName);
 
     //load XRef table
-    loadKmVXRefTable(dataFileName);
+    loadKVXRefTable(dataFileName);
 
 }
 
@@ -57,17 +57,18 @@ double KmVConverter::convertmVtoK(double mVolts) {
     int high = recordCnt - 1;
     int low  = 0;
     double mVResult = -1.0;
+    double volts = 0.0;
 
     //convert to volts
-    mVolts /= 1000;
+    volts = mVolts / 1000;
 
-    if ( validateInput(mVolts, MVOLT) == true ) {
+    if ( validateInput(volts, VOLT) == true ) {
 
-       mVResult = KmVLookupDesc(high, low, MVOLT, mVolts );
+       mVResult = KVLookupDesc(high, low, VOLT, volts );
 
         if (mVResult < 0) {
 
-            mVResult = mVToKInterpolation(high, low, mVolts);
+            mVResult = VToKInterpolation(high, low, volts);
 
         } else {
 
@@ -89,16 +90,22 @@ double KmVConverter::convertKtomV(double Kelvin){
 
     if ( validateInput(Kelvin, KELVIN) == true) {
 
-        mVResult = KmVLookup(high, low, KELVIN , Kelvin );
+        mVResult = KVLookup(high, low, KELVIN , Kelvin );
 
         if (static_cast<int>(mVResult) == -1) {
 
-            mVResult = KTomVInterpolation(high, low, Kelvin);
+            mVResult = KToVInterpolation(high, low, Kelvin);
+
+            mVResult /= 1000;
+
         } else {
 
             int row = static_cast<int>(mVResult);
+
             mVResult = dataStore[row][1];
 
+            mVResult /= 1000;
+
         }
     }
 
@@ -106,7 +113,7 @@ double KmVConverter::convertKtomV(double Kelvin){
 
 }
 
-int KmVConverter::KmVLookup(int &high, int &low, ConvUnit convUnit, double value) {
+int KmVConverter::KVLookup(int &high, int &low, ConvUnit convUnit, double value) {
 
     int mid = 0;
 
@@ -128,7 +135,7 @@ int KmVConverter::KmVLookup(int &high, int &low, ConvUnit convUnit, double value
   return (low < high && isEqual(dataStore[low][convUnit], value)) ? low : -1;
 }
 
-int KmVConverter::KmVLookupDesc(int &high, int &low, ConvUnit convUnit, double value) {
+int KmVConverter::KVLookupDesc(int &high, int &low, ConvUnit convUnit, double value) {
 
     int mid = 0;
 
@@ -151,22 +158,22 @@ int KmVConverter::KmVLookupDesc(int &high, int &low, ConvUnit convUnit, double v
 }
 
 
-double KmVConverter::KTomVInterpolation(int high, int low, double target) {
+double KmVConverter::KToVInterpolation(int high, int low, double target) {
 
-    double mVResult = dataStore[low][MVOLT] + (dataStore[high][MVOLT] - dataStore[low][MVOLT]) * ((target - dataStore[low][KELVIN])/(dataStore[high][KELVIN] - dataStore[low][KELVIN]));
+    double mVResult = dataStore[low][VOLT] + (dataStore[high][VOLT] - dataStore[low][VOLT]) * ((target - dataStore[low][KELVIN])/(dataStore[high][KELVIN] - dataStore[low][KELVIN]));
 
     return mVResult;
 }
 
-double KmVConverter::mVToKInterpolation(int low, int high, double target) {
+double KmVConverter::VToKInterpolation(int low, int high, double target) {
 
-    double KResult = dataStore[low][KELVIN] + (dataStore[high][KELVIN] - dataStore[low][KELVIN]) * ((target - dataStore[low][MVOLT])/(dataStore[high][MVOLT] - dataStore[low][MVOLT]));
+    double KResult = dataStore[low][KELVIN] + (dataStore[high][KELVIN] - dataStore[low][KELVIN]) * ((target - dataStore[low][VOLT])/(dataStore[high][VOLT] - dataStore[low][VOLT]));
 
     return KResult;
 }
 
 
-void KmVConverter::loadKmVXRefTable(char* fileName) {
+void KmVConverter::loadKVXRefTable(char* fileName) {
 
     ifstream inFile;
     string record;
@@ -212,7 +219,7 @@ void KmVConverter::loadKmVXRefTable(char* fileName) {
                 //cout << KValue << " " << mVValue << " " << dVdTValue << endl;
 
                 dataStore[recCntr][KELVIN] = KValue;
-                dataStore[recCntr][MVOLT] = mVValue;
+                dataStore[recCntr][VOLT] = mVValue;
 
                 recCntr++;
             }
