@@ -14,8 +14,8 @@ const char CMD_LNE_USAGE[] = "Usage: %s -f <filename>";
 const char FILE_OPEN_ERROR_MSG[] = "%s file failed to open.";
 
 //test data
-const double kelvin[] = {1.23,1.34,1.40,2.1,3.5,4.0125,40.125,401.25,505.13};
-const double mVolts[] = {85.023, 628.302,892.35,1725.0,1600.2,1050.13};
+const double kelvin[] = {1.23,1.34,1.40,2.1,3.5,4.0125,40.125,401.25,505.13,99.1};
+const double mVolts[] = {85.023, 628.302,892.35,1725.0,1600.2,1050.13,100};
 
 int main(int argc, char* argv[])
 {
